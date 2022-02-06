@@ -1,0 +1,94 @@
+###############
+# Init system #
+############### 
+
+# Load packages
+library("e1071")
+library("keras")
+library("randomForest")
+library("caret")
+
+# Disable warnings
+options(warn=-1)
+
+
+# Clear workspace
+graphics.off()
+rm(list=ls())
+
+
+# Experimental setup
+num_train = 5000   # 60000 for full data set 
+num_test  =  500   # 10000 for full data set
+
+
+
+#########################
+# Load and prepare data #
+#########################
+
+# Load MNIST data
+mnist = dataset_mnist()
+
+
+# Assign train and test data+labels
+train_data  = mnist$train$x
+train_label = mnist$train$y
+
+test_data  = mnist$test$x
+test_label = mnist$test$y
+
+
+# Reshape images to vectors
+train_data = array_reshape(train_data, c(nrow(train_data), 784))
+test_data  = array_reshape(test_data, c(nrow(test_data), 784))
+
+
+# Rescale data to range [0,1]
+train_data = train_data / 255
+test_data = test_data / 255
+
+
+# select subset for training
+train_data = train_data[1:num_train,]
+train_label = train_label[1:num_train]
+
+
+# select subset for testing
+test_data = test_data[1:num_test,]
+test_label = test_label[1:num_test]
+
+
+
+################################
+# Train and run classification #
+################################
+
+# Init timer
+t1 = proc.time()
+
+
+# Train SVM
+#S = svm(train_data, factor(train_label))
+#Random Forrest
+S <- randomForest(x=train_data, y=factor(train_label)  ,ntree = 100, do.trace = T,keep.forest=TRUE)
+
+
+
+
+S$confusion[, 'class.error']
+
+
+prediction <-predict(S, test_data)
+
+confusionMatrix(prediction, factor(test_label))
+
+
+
+
+# End time, calculate elapsed time
+t2 = proc.time()
+t = t2-t1
+cat("Computation time:\n\n")
+print(t)
+
